@@ -3,6 +3,7 @@ import { AlertCircle, Mail } from "lucide-react";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { Button } from "./ui/button";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 interface EmailVerificationAlertProps {
   emailVerified: boolean;
@@ -86,36 +87,47 @@ export function EmailVerificationAlert({
   const isResendDisabled = isLoading || resendCooldown > 0;
 
   return (
-    <div
-      className={`border border-yellow-200 bg-yellow-50 rounded-lg p-4 ${className}`}
+    <Alert
+      className={`border-amber-300/60 bg-amber-50 text-amber-900 dark:bg-amber-950/20 dark:text-amber-100 dark:border-amber-800 rounded-xl ${className}`}
     >
-      <div className="flex items-start gap-3">
-        <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <h3 className="font-semibold text-yellow-800 mb-1">
-            👉 {content.message}
-          </h3>
-          <p className="text-sm text-yellow-700 mb-2">{content.emailText}</p>
-          <p className="text-xs text-yellow-600 mb-3">{content.restrictions}</p>
-
-          {showActions && (
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleResendVerification}
-                disabled={isResendDisabled}
-                size="sm"
-                variant="outline"
-                className="bg-yellow-100 border-yellow-300 text-yellow-800 hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Mail className="h-4 w-4 mr-1" />
-                {resendCooldown > 0
-                  ? `${content.resendCooldown} ${resendCooldown}s`
-                  : content.resendButton}
-              </Button>
-            </div>
-          )}
-        </div>
+      <AlertCircle className="h-5 w-5 text-amber-600" />
+      <div className="flex flex-col gap-2">
+        <AlertTitle className="text-amber-900 dark:text-amber-100">
+          {content.title}
+        </AlertTitle>
+        <AlertDescription>
+          <p className="text-sm text-amber-800 dark:text-amber-200">
+            {content.message}
+          </p>
+          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+            {content.emailText}
+          </p>
+          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+            {content.restrictions}
+          </p>
+        </AlertDescription>
+        {showActions && (
+          <div className="mt-2 flex items-center gap-2">
+            <Button
+              onClick={handleResendVerification}
+              disabled={isResendDisabled}
+              size="sm"
+              variant="outline"
+              className="border-amber-300 text-amber-800 hover:bg-amber-100 dark:text-amber-100 dark:hover:bg-amber-900/40"
+            >
+              <Mail className="h-4 w-4" />
+              {resendCooldown > 0
+                ? `${content.resendCooldown} ${resendCooldown}s`
+                : content.resendButton}
+            </Button>
+            {resendCooldown > 0 && (
+              <span className="text-xs text-amber-600 dark:text-amber-400">
+                {content.resendCooldown} {resendCooldown}s
+              </span>
+            )}
+          </div>
+        )}
       </div>
-    </div>
+    </Alert>
   );
 }

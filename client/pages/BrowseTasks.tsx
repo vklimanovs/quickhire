@@ -6,6 +6,9 @@ import SEO from "../components/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { Task } from "../Types";
+import { useVerificationRestrictions } from "../hooks/useVerificationRestrictions";
+import { useToast } from "../hooks/use-toast";
+import { useSubscription } from "../lib/SubscriptionContext";
 import {
   Search,
   Filter,
@@ -41,6 +44,9 @@ function RoleBasedActionButton({
   currentLanguage: string;
 }) {
   const { switchRole } = useAuth();
+  const { isRestricted, restrictionMessage } = useVerificationRestrictions();
+  const { toast } = useToast();
+  const { openSubscriptionModal } = useSubscription();
   const currentRole = localStorage.getItem("selected_account_type");
   const isProvider = currentRole === "provider";
   const isClient = currentRole === "customer";
@@ -54,9 +60,27 @@ function RoleBasedActionButton({
   };
 
   if (isClient) {
+    const handlePostTask = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (isRestricted) {
+        toast({
+          title:
+            currentLanguage === "ru"
+              ? "Требуется подтверждение"
+              : currentLanguage === "en"
+                ? "Verification Required"
+                : "Vajalik kinnitamine",
+          description: restrictionMessage,
+          variant: "destructive",
+        });
+        return;
+      }
+      openSubscriptionModal("post-task");
+    };
+
     return (
-      <Link
-        to={`/${currentLanguage}/create-task`}
+      <button
+        onClick={handlePostTask}
         className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
       >
         <Target className="h-5 w-5 mr-2" />
@@ -65,7 +89,7 @@ function RoleBasedActionButton({
           : currentLanguage === "en"
             ? "Post a Task"
             : "Postita ülesanne"}
-      </Link>
+      </button>
     );
   }
 

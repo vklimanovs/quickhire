@@ -52,7 +52,7 @@ function CustomerDashboard() {
     useAuth();
   const { customer, stats, isLoading: customerLoading } = useCustomer();
   const { openSubscriptionModal } = useSubscription();
-  const { isRestricted } = useVerificationRestrictions();
+  const { isRestricted, restrictionMessage } = useVerificationRestrictions();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<
     "overview" | "tasks" | "bookings" | "feedback" | "settings"
@@ -142,6 +142,24 @@ function CustomerDashboard() {
   }, [customer]);
 
   const handleEditProfile = () => {
+    if (isRestricted) {
+      toast({
+        title:
+          currentLanguage === "ru"
+            ? "Требуется подтверждение"
+            : currentLanguage === "en"
+              ? "Verification Required"
+              : "Vajalik kinnitamine",
+        description:
+          currentLanguage === "ru"
+            ? "Подтвердите email чтобы получить доступ к этой функции."
+            : currentLanguage === "et"
+              ? "Kinnitage e-mail, et saada juurdepääs sellele funktsioonile."
+              : "Please verify your email to access this feature.",
+        variant: "destructive",
+      });
+      return;
+    }
     setOriginalProfile({ ...profile });
     setIsEditingProfile(true);
   };
@@ -225,6 +243,29 @@ function CustomerDashboard() {
     }
   };
 
+  // Password strength checker
+  const getPasswordStrength = (password: string) => {
+    if (!password) return { strength: 0, requirements: [] };
+
+    const requirements = [
+      { met: password.length >= 8, text: "At least 8 characters" },
+      { met: /[A-Z]/.test(password), text: "One uppercase letter" },
+      { met: /[a-z]/.test(password), text: "One lowercase letter" },
+      { met: /\d/.test(password), text: "One digit" },
+      {
+        met: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        text: "One special character",
+      },
+    ];
+
+    const metCount = requirements.filter((req) => req.met).length;
+    const strength = (metCount / requirements.length) * 100;
+
+    return { strength, requirements };
+  };
+
+  const passwordStrength = getPasswordStrength(passwordData.newPassword);
+
   // Password change handler
   const handlePasswordChange = async () => {
     // Validate required fields based on whether password is already set
@@ -250,6 +291,29 @@ function CustomerDashboard() {
             : currentLanguage === "en"
               ? "All password fields are required."
               : "Kõik parooli väljad on kohustuslikud.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check password complexity requirements
+    const { requirements } = getPasswordStrength(passwordData.newPassword);
+    const unmetRequirements = requirements.filter(req => !req.met);
+    
+    if (unmetRequirements.length > 0) {
+      toast({
+        title:
+          currentLanguage === "ru"
+            ? "Пароль не соответствует требованиям"
+            : currentLanguage === "en"
+              ? "Password doesn't meet requirements"
+              : "Parool ei vasta nõuetele",
+        description:
+          currentLanguage === "ru"
+            ? "Пароль должен соответствовать всем требованиям безопасности."
+            : currentLanguage === "en"
+              ? "Password must meet all security requirements."
+              : "Parool peab vastama kõigile turvanõuetele.",
         variant: "destructive",
       });
       return;
@@ -314,7 +378,7 @@ function CustomerDashboard() {
               ? "Your password has been successfully updated."
               : "Teie parool on edukalt uuendatud."
           : currentLanguage === "ru"
-            ? "Ваш пароль был успешно установлен."
+            ? "Ваш пароль был успе��но установлен."
             : currentLanguage === "en"
               ? "Your password has been successfully set."
               : "Teie parool on edukalt määratud.",
@@ -506,9 +570,18 @@ function CustomerDashboard() {
                 {!isEditingProfile && (
                   <button
                     onClick={handleEditProfile}
-                    className="flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors hover:bg-blue-50 px-3 py-2 rounded-lg"
+                    aria-disabled={isRestricted}
+                    className={`flex items-center font-medium text-sm transition-colors px-3 py-2 rounded-lg ${
+                      isRestricted
+                        ? "text-gray-400 cursor-not-allowed bg-gray-100"
+                        : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    }`}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
+                    {isRestricted ? (
+                      <Lock className="h-4 w-4 mr-2" />
+                    ) : (
+                      <Edit className="h-4 w-4 mr-2" />
+                    )}
                     {currentLanguage === "ru"
                       ? "Редактировать"
                       : currentLanguage === "en"
@@ -531,7 +604,7 @@ function CustomerDashboard() {
                           </div>
                           <h3 className="text-lg font-semibold text-gray-900">
                             {currentLanguage === "ru"
-                              ? "Основная информация"
+                              ? "Основная ��нформация"
                               : currentLanguage === "en"
                                 ? "Basic Information"
                                 : "Põhiinfo"}
@@ -705,7 +778,7 @@ function CustomerDashboard() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
                             placeholder={
                               currentLanguage === "ru"
-                                ? "Расскажите о себе или своей компании..."
+                                ? "Рас��кажите о себе или своей компании..."
                                 : currentLanguage === "en"
                                   ? "Tell us about yourself or your company..."
                                   : "Rääkige endast või oma ettevõttest..."
@@ -1092,27 +1165,48 @@ function CustomerDashboard() {
                     <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
                   </div>
                 </div>
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const currentScrollY = window.scrollY;
-                      setActiveTab(tab.id as any);
-                      setTimeout(() => {
-                        window.scrollTo(0, currentScrollY);
-                      }, 0);
-                    }}
-                    className={`py-3 sm:py-3 lg:py-4 px-3 sm:px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap flex-shrink-0 min-w-0 ${
-                      activeTab === tab.id
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+                {tabs.map((tab) => {
+                  const isLocked = isRestricted;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (isLocked) {
+                          toast({
+                            title:
+                              currentLanguage === "ru"
+                                ? "Требуется подтверждение"
+                                : currentLanguage === "en"
+                                  ? "Verification Required"
+                                  : "Vajalik kinnitamine",
+                            description: restrictionMessage,
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        const currentScrollY = window.scrollY;
+                        setActiveTab(tab.id as any);
+                        setTimeout(() => {
+                          window.scrollTo(0, currentScrollY);
+                        }, 0);
+                      }}
+                      className={`py-3 sm:py-3 lg:py-4 px-3 sm:px-3 border-b-2 font-medium text-sm transition-colors whitespace-nowrap flex-shrink-0 min-w-0 ${
+                        activeTab === tab.id
+                          ? "border-blue-500 text-blue-600"
+                          : isLocked
+                            ? "border-transparent text-gray-400 cursor-not-allowed opacity-60"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      {tab.label}
+                      {isLocked && (
+                        <span className="ml-1 text-xs opacity-60">🔒</span>
+                      )}
+                    </button>
+                  );
+                })}
               </nav>
             </div>
 
@@ -1163,7 +1257,7 @@ function CustomerDashboard() {
                       </p>
                       <p className="text-gray-600 text-sm">
                         {currentLanguage === "ru"
-                          ? "Ваша активность появится здесь, ��огда вы начнёте пользоваться платформой."
+                          ? "Ваша активность появи��ся здесь, ��огда вы начнёте пользоваться платформой."
                           : currentLanguage === "en"
                             ? "Your activity will appear here when you start using the platform."
                             : "Teie tegevus ilmub siia, kui hakkate platvormi kasutama."}
@@ -1223,7 +1317,7 @@ function CustomerDashboard() {
                         className="w-full flex items-center p-3 sm:p-4 border border-dashed border-gray-300 rounded-xl hover:bg-gradient-to-br hover:from-amber-50 hover:to-orange-50 hover:border-amber-300 transition-all duration-200 opacity-75 hover:opacity-100 group min-h-[60px] sm:min-h-[70px]"
                         title={
                           currentLanguage === "ru"
-                            ? "Доступно с подпиской - ��абронируйте консультации экспертов"
+                            ? "Доступно с подп��ской - ��абронируйте консультации экспертов"
                             : currentLanguage === "en"
                               ? "Available with subscription - Book expert consultations"
                               : "Saadaval tellimuse korral - Broneeri ekspertide konsultatsioone"
@@ -1368,6 +1462,55 @@ function CustomerDashboard() {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             placeholder="••••••••"
                           />
+                          
+                          {/* Password Strength Indicator */}
+                          {passwordData.newPassword && (
+                            <div className="mt-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-700">
+                                  {currentLanguage === "ru"
+                                    ? "Сила пароля"
+                                    : currentLanguage === "en"
+                                      ? "Password Strength"
+                                      : "Parooli tugevus"}
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {passwordStrength.strength}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className={`h-2 rounded-full transition-all duration-300 ${
+                                    passwordStrength.strength < 40
+                                      ? "bg-red-500"
+                                      : passwordStrength.strength < 80
+                                      ? "bg-yellow-500"
+                                      : "bg-green-500"
+                                  }`}
+                                  style={{ width: `${passwordStrength.strength}%` }}
+                                ></div>
+                              </div>
+                              
+                              {/* Password Requirements */}
+                              <div className="mt-3 space-y-1">
+                                {passwordStrength.requirements.map((req, index) => (
+                                  <div
+                                    key={index}
+                                    className={`flex items-center text-xs ${
+                                      req.met ? "text-green-600" : "text-gray-500"
+                                    }`}
+                                  >
+                                    {req.met ? (
+                                      <CheckCircle className="h-3 w-3 mr-2 text-green-600" />
+                                    ) : (
+                                      <div className="h-3 w-3 mr-2 rounded-full border border-gray-300"></div>
+                                    )}
+                                    {req.text}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div>

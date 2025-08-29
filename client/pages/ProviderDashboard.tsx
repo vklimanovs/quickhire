@@ -47,6 +47,7 @@ import {
   X,
   Phone,
   Briefcase,
+  Lock,
 } from "lucide-react";
 import { AuthApi } from "../lib/ApiClient";
 import { getLocalizedLanguageName } from "../data/languages";
@@ -272,6 +273,19 @@ function ModernProviderDashboardContent() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
 
   const handleEditProfile = () => {
+    if (isRestricted) {
+      toast({
+        title:
+          currentLanguage === "ru"
+            ? "Требуется подтверждение"
+            : currentLanguage === "en"
+              ? "Verification Required"
+              : "Vajalik kinnitamine",
+        description: restrictionMessage,
+        variant: "destructive",
+      });
+      return;
+    }
     setOriginalProvider({ ...editableProvider });
     setIsEditingProfile(true);
   };
@@ -494,6 +508,29 @@ function ModernProviderDashboardContent() {
     });
   };
 
+  // Password strength checker
+  const getPasswordStrength = (password: string) => {
+    if (!password) return { strength: 0, requirements: [] };
+
+    const requirements = [
+      { met: password.length >= 8, text: "At least 8 characters" },
+      { met: /[A-Z]/.test(password), text: "One uppercase letter" },
+      { met: /[a-z]/.test(password), text: "One lowercase letter" },
+      { met: /\d/.test(password), text: "One digit" },
+      {
+        met: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        text: "One special character",
+      },
+    ];
+
+    const metCount = requirements.filter((req) => req.met).length;
+    const strength = (metCount / requirements.length) * 100;
+
+    return { strength, requirements };
+  };
+
+  const passwordStrength = getPasswordStrength(passwordData.newPassword);
+
   // Password change handler
   const handlePasswordChange = async () => {
     setPasswordError("");
@@ -521,6 +558,29 @@ function ModernProviderDashboardContent() {
             : currentLanguage === "en"
               ? "All password fields are required."
               : "Kõik parooli väljad on kohustuslikud.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check password complexity requirements
+    const { requirements } = getPasswordStrength(passwordData.newPassword);
+    const unmetRequirements = requirements.filter(req => !req.met);
+    
+    if (unmetRequirements.length > 0) {
+      toast({
+        title:
+          currentLanguage === "ru"
+            ? "Пароль не соответствует требованиям"
+            : currentLanguage === "en"
+              ? "Password doesn't meet requirements"
+              : "Parool ei vasta nõuetele",
+        description:
+          currentLanguage === "ru"
+            ? "Пароль должен соответствовать всем требованиям безопасности."
+            : currentLanguage === "en"
+              ? "Password must meet all security requirements."
+              : "Parool peab vastama kõigile turvanõuetele.",
         variant: "destructive",
       });
       return;
@@ -648,7 +708,7 @@ function ModernProviderDashboardContent() {
               ? "Phone number is now visible in your profile."
               : "Telefoninumber on nüüd teie profiilis nähtav."
           : currentLanguage === "ru"
-            ? "Номер телефона скрыт из профиля."
+            ? "Номер телефона ��крыт из профиля."
             : currentLanguage === "en"
               ? "Phone number is now hidden from your profile."
               : "Telefoninumber on nüüd teie profiilist peidetud.",
@@ -674,7 +734,7 @@ function ModernProviderDashboardContent() {
               ? "Email address is now visible in your profile."
               : "E-posti aadress on nüüd teie profiilis nähtav."
           : currentLanguage === "ru"
-            ? "Email адрес скрыт из профиля."
+            ? "Email адрес скрыт и�� профиля."
             : currentLanguage === "en"
               ? "Email address is now hidden from your profile."
               : "E-posti aadress on nüüd teie profiilist peidetud.",
@@ -795,7 +855,7 @@ function ModernProviderDashboardContent() {
         )}
 
         {/* Profile Completion Alert */}
-        {!isProfileComplete && (
+        {!isProfileComplete && !isRestricted && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 mb-3 sm:mb-6">
             <div className="flex items-start">
               <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" />
@@ -884,9 +944,18 @@ function ModernProviderDashboardContent() {
               {!isEditingProfile && (
                 <button
                   onClick={handleEditProfile}
-                  className="flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors hover:bg-blue-50 px-2 sm:px-3 py-2 rounded-lg"
+                  aria-disabled={isRestricted}
+                  className={`flex items-center font-medium text-sm transition-colors px-2 sm:px-3 py-2 rounded-lg ${
+                    isRestricted
+                      ? "text-gray-400 cursor-not-allowed bg-gray-100"
+                      : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  }`}
                 >
-                  <Edit className="h-4 w-4 mr-1 sm:mr-2" />
+                  {isRestricted ? (
+                    <Lock className="h-4 w-4 mr-1 sm:mr-2" />
+                  ) : (
+                    <Edit className="h-4 w-4 mr-1 sm:mr-2" />
+                  )}
                   <span className="hidden sm:inline">
                     {currentLanguage === "ru"
                       ? "Редактировать"
@@ -1397,6 +1466,7 @@ function ModernProviderDashboardContent() {
                               updateProviderStatus(status)
                             }
                             size="sm"
+                            disabled={isRestricted}
                           />
                         </div>
 
@@ -1652,7 +1722,7 @@ function ModernProviderDashboardContent() {
                 </div>
               </div>
               {tabs.map((tab) => {
-                const isLocked =
+                const isLockedProfile =
                   !isProfileComplete &&
                   [
                     "services",
@@ -1662,6 +1732,8 @@ function ModernProviderDashboardContent() {
                     "feedback",
                     "settings",
                   ].includes(tab.id);
+                const isLockedEmail = isRestricted;
+                const isLocked = isLockedEmail || isLockedProfile;
 
                 return (
                   <button
@@ -1670,7 +1742,20 @@ function ModernProviderDashboardContent() {
                       e.preventDefault();
                       e.stopPropagation();
 
-                      if (isLocked) {
+                      if (isLockedEmail) {
+                        toast({
+                          title:
+                            currentLanguage === "ru"
+                              ? "Требуется подтверждение"
+                              : currentLanguage === "en"
+                                ? "Verification Required"
+                                : "Vajalik kinnitamine",
+                          description: restrictionMessage,
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      if (isLockedProfile) {
                         toast({
                           title:
                             currentLanguage === "ru"
@@ -1680,7 +1765,7 @@ function ModernProviderDashboardContent() {
                                 : "Lõpetage oma profiil",
                           description:
                             currentLanguage === "ru"
-                              ? "Заполните навыки, категории, профессию, б��ографию и языки, чтобы разблокировать все функции."
+                              ? "Заполните навыки, категории, профессию, биографию и языки, чтобы разблокировать все функции."
                               : currentLanguage === "en"
                                 ? "Fill in skills, categories, professional title, bio, and languages to unlock all features."
                                 : "Täitke oskused, kategooriad, kutse, elulugu ja keeled, et avada kõik funktsioonid.",
@@ -1702,7 +1787,6 @@ function ModernProviderDashboardContent() {
                           ? "border-transparent text-gray-400 cursor-not-allowed opacity-60"
                           : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                     }`}
-                    disabled={isLocked}
                   >
                     {tab.label}
                     {isLocked && (
@@ -1869,7 +1953,7 @@ function ModernProviderDashboardContent() {
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       {currentLanguage === "ru"
-                        ? "Добавить услугу"
+                        ? "Добавить усл��гу"
                         : currentLanguage === "en"
                           ? "Add Service"
                           : "Lisa teenus"}
@@ -2053,6 +2137,55 @@ function ModernProviderDashboardContent() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="••••••••"
                         />
+                        
+                        {/* Password Strength Indicator */}
+                        {passwordData.newPassword && (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-gray-700">
+                                {currentLanguage === "ru"
+                                  ? "Сила пароля"
+                                  : currentLanguage === "en"
+                                    ? "Password Strength"
+                                    : "Parooli tugevus"}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                {passwordStrength.strength}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  passwordStrength.strength < 40
+                                    ? "bg-red-500"
+                                    : passwordStrength.strength < 80
+                                    ? "bg-yellow-500"
+                                    : "bg-green-500"
+                                }`}
+                                style={{ width: `${passwordStrength.strength}%` }}
+                              ></div>
+                            </div>
+                            
+                            {/* Password Requirements */}
+                            <div className="mt-3 space-y-1">
+                              {passwordStrength.requirements.map((req, index) => (
+                                <div
+                                  key={index}
+                                  className={`flex items-center text-xs ${
+                                    req.met ? "text-green-600" : "text-gray-500"
+                                  }`}
+                                >
+                                  {req.met ? (
+                                    <CheckCircle className="h-3 w-3 mr-2 text-green-600" />
+                                  ) : (
+                                    <div className="h-3 w-3 mr-2 rounded-full border border-gray-300"></div>
+                                  )}
+                                  {req.text}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -2090,7 +2223,7 @@ function ModernProviderDashboardContent() {
                         >
                           {user?.isPasswordSet
                             ? currentLanguage === "ru"
-                              ? "Обновить пароль"
+                              ? "Обновить па��оль"
                               : currentLanguage === "en"
                                 ? "Update Password"
                                 : "Uuenda parooli"
