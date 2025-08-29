@@ -1,0 +1,349 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Freelance Profile Schema",
+  "type": "object",
+  "required": ["id", "email", "status", "roles", "createdAt", "updatedAt"],
+  "anyOf": [
+    {
+      "required": ["firstName", "lastName"]
+    },
+    {
+      "required": ["company"]
+    }
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique user identifier"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "User email address"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "First name (required if no company)"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "Last name (required if no company)"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name (required if no firstName/lastName)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Geographic location"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "User timezone"
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "level"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "ISO-639-1 language code"
+          },
+          "level": {
+            "type": "string",
+            "enum": ["native", "fluent", "conversational"]
+          },
+          "label": {
+            "type": "string",
+            "description": "Localized display name"
+          }
+        }
+      }
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number with international format"
+    },
+    "avatarUrl": {
+      "type": "string",
+      "description": "Avatar image URL"
+    },
+    "memberSinceISO": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Member since date in ISO 8601 format"
+    },
+    "memberSince": {
+      "type": "string",
+      "description": "Human-readable member since date"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Average rating from 0 to 5"
+    },
+    "reviewsCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of reviews received"
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "showPhone": {
+          "type": "boolean",
+          "description": "Whether to show phone number publicly"
+        },
+        "showEmail": {
+          "type": "boolean",
+          "description": "Whether to show email publicly"
+        },
+        "showSocials": {
+          "type": "boolean",
+          "description": "Whether to show social media links publicly"
+        }
+      }
+    },
+    "socials": {
+      "type": "object",
+      "properties": {
+        "website": {
+          "type": "string",
+          "description": "Website URL"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn profile URL"
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub profile URL"
+        },
+        "dribbble": {
+          "type": "string",
+          "description": "Dribbble profile URL"
+        },
+        "twitter": {
+          "type": "string",
+          "description": "Twitter profile URL"
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "required": ["isCustomer", "isFreelance"],
+      "properties": {
+        "isCustomer": {
+          "type": "boolean",
+          "description": "Has client role capabilities"
+        },
+        "isFreelance": {
+          "type": "boolean",
+          "description": "Has freelance role capabilities"
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Account creation date in ISO 8601 format"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last profile update date in ISO 8601 format"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["available", "busy", "offline", "inactive"],
+      "description": "Current availability status"
+    },
+    "title": {
+      "type": "string",
+      "description": "Professional title/headline"
+    },
+    "yearsExperience": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Years of professional experience"
+    },
+    "primaryCategory": {
+      "type": "string",
+      "description": "Primary service category"
+    },
+    "secondaryCategories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Secondary service categories"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Professional skills"
+    },
+    "languagesDetail": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "level"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "ISO-639-1 language code"
+          },
+          "level": {
+            "type": "string",
+            "enum": ["native", "fluent", "conversational"]
+          },
+          "label": {
+            "type": "string",
+            "description": "Localized display name"
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "totalTasks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "consultations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reviews": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tasksInProgress": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "upcomingConsultations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pendingProposals": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "description", "price", "deliveryTime"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price in EUR (no currency symbol)"
+          },
+          "deliveryTime": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "consultation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "description", "duration", "price"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price in EUR (no currency symbol)"
+          },
+          "includesVideoCall": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "portfolio": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "description", "image"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "link": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "feedback": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "rating", "comment", "date"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "client": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "comment": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "projectTitle": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

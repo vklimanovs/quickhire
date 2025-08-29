@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Client Profile Schema",
+  "type": "object",
+  "required": ["id", "email", "roles", "createdAt", "updatedAt"],
+  "anyOf": [
+    {
+      "required": ["firstName", "lastName"]
+    },
+    {
+      "required": ["company"]
+    }
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique user identifier"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "User email address"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "First name (required if no company)"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "Last name (required if no company)"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name (required if no firstName/lastName)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Geographic location"
+    },
+    "timezone": {
+      "type": "string",
+      "description": "User timezone"
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "level"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "ISO-639-1 language code"
+          },
+          "level": {
+            "type": "string",
+            "enum": ["native", "fluent", "conversational"]
+          },
+          "label": {
+            "type": "string",
+            "description": "Localized display name"
+          }
+        }
+      }
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number with international format"
+    },
+    "avatarUrl": {
+      "type": "string",
+      "description": "Avatar image URL"
+    },
+    "memberSinceISO": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Member since date in ISO 8601 format"
+    },
+    "memberSince": {
+      "type": "string",
+      "description": "Human-readable member since date"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Average rating from 0 to 5"
+    },
+    "reviewsCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of reviews received"
+    },
+    "privacy": {
+      "type": "object",
+      "properties": {
+        "showPhone": {
+          "type": "boolean",
+          "description": "Whether to show phone number publicly"
+        },
+        "showEmail": {
+          "type": "boolean",
+          "description": "Whether to show email publicly"
+        },
+        "showSocials": {
+          "type": "boolean",
+          "description": "Whether to show social media links publicly"
+        }
+      }
+    },
+    "socials": {
+      "type": "object",
+      "properties": {
+        "website": {
+          "type": "string",
+          "description": "Website URL"
+        },
+        "linkedin": {
+          "type": "string",
+          "description": "LinkedIn profile URL"
+        },
+        "github": {
+          "type": "string",
+          "description": "GitHub profile URL"
+        },
+        "dribbble": {
+          "type": "string",
+          "description": "Dribbble profile URL"
+        },
+        "twitter": {
+          "type": "string",
+          "description": "Twitter profile URL"
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "required": ["isCustomer", "isFreelance"],
+      "properties": {
+        "isCustomer": {
+          "type": "boolean",
+          "description": "Has client role capabilities"
+        },
+        "isFreelance": {
+          "type": "boolean",
+          "description": "Has freelance role capabilities"
+        }
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Account creation date in ISO 8601 format"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last profile update date in ISO 8601 format"
+    },
+    "subscription": {
+      "type": "object",
+      "properties": {
+        "plan": {
+          "type": "string",
+          "enum": ["monthly", "yearly"],
+          "description": "Subscription plan type"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "inactive", "expired"],
+          "description": "Subscription status"
+        },
+        "renewedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last renewal date in ISO 8601 format"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expiration date in ISO 8601 format"
+        }
+      }
+    },
+    "recentActivity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "description", "date"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Activity unique identifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "task_posted",
+              "consultation_booked",
+              "review_received",
+              "task_completed"
+            ],
+            "description": "Type of activity"
+          },
+          "description": {
+            "type": "string",
+            "description": "Activity description"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Activity date in ISO 8601 format"
+          },
+          "link": {
+            "type": "string",
+            "description": "Optional link related to activity"
+          }
+        }
+      }
+    },
+    "tasksOverview": {
+      "type": "object",
+      "properties": {
+        "totalPosted": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total tasks posted"
+        },
+        "activeCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Currently active tasks"
+        },
+        "completedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Completed tasks"
+        }
+      }
+    }
+  }
+}
