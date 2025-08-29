@@ -1,4 +1,4 @@
-# Pixel Sanctuary
+# Quick Hire
 
 A modern web application for connecting clients with service providers, built with React, TypeScript, and Vite.
 
@@ -29,7 +29,7 @@ A modern web application for connecting clients with service providers, built wi
 
 ```bash
 git clone <your-repo-url>
-cd pixel-sanctuary
+cd quickhire
 ```
 
 2. Install dependencies:
@@ -66,7 +66,7 @@ The application will be available at `http://localhost:8080`
 ## 🏗️ Project Structure
 
 ```
-pixel-sanctuary/
+quickhire/
 ├── client/                 # Frontend React application
 │   ├── components/        # Reusable UI components
 │   ├── pages/            # Page components
