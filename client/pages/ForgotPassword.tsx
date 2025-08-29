@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { Mail, ArrowRight, ArrowLeft } from "lucide-react";
 import { AuthApi } from "../lib/ApiClient";
-import LanguageText from "../components/LanguageText";
-import FormField from "../components/FormField";
-import Button from "../components/Button";
-import Card from "../components/Card";
+import LanguageText from "../components/common/LanguageText";
+import FormField from "../components/forms/FormField";
+import CustomButton from "../components/forms/Button";
+import CustomCard from "../components/forms/Card";
 
 export default function ForgotPassword() {
   const { currentLanguage, t } = useLanguage();
@@ -96,7 +96,7 @@ export default function ForgotPassword() {
 
         <main className="flex-1 flex items-center justify-center px-4 py-12">
           <div className="w-full max-w-md">
-            <Card shadow="lg" padding="lg">
+            <CustomCard shadow="lg" padding="lg">
               {!isSubmitted ? (
                 <>
                   <div className="text-center mb-8">
@@ -136,7 +136,7 @@ export default function ForgotPassword() {
                       icon={<Mail className="h-5 w-5 text-gray-400" />}
                     />
 
-                    <Button
+                    <CustomButton
                       type="submit"
                       disabled={isLoading}
                       loading={isLoading}
@@ -202,7 +202,7 @@ export default function ForgotPassword() {
                   </Link>
                 </div>
               )}
-            </Card>
+            </CustomCard>
           </div>
         </main>
 

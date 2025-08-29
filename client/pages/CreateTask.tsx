@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
-import SkillsAutocomplete from "../components/SkillsAutocomplete";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
+import SkillsAutocomplete from "../components/forms/SkillsAutocomplete";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { useSubscription } from "../lib/SubscriptionContext";
 import { useToast } from "../hooks/use-toast";
-import GateModal from "../components/GateModal";
+import GateModal from "../components/modals/GateModal";
 import { useGate } from "../hooks/useGate";
 // TODO: Replace with actual API imports
 import { Task, TaskFormData } from "../Types";

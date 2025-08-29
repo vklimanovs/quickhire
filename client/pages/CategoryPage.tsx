@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useSubscription } from "../lib/SubscriptionContext";
-import GuardedAction from "../components/GuardedAction";
-import SkillsAutocomplete from "../components/SkillsAutocomplete";
+import GuardedAction from "../components/common/GuardedAction";
+import SkillsAutocomplete from "../components/forms/SkillsAutocomplete";
 import { useDebounce } from "../hooks/useDebounce";
 import { useUrlFilters } from "../hooks/useUrlFilters";
 import { Search, Filter, Star, MapPin, ArrowLeft } from "lucide-react";

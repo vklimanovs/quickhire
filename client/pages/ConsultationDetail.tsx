@@ -3,12 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { useSubscription } from "../lib/SubscriptionContext";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
-import GatedPage from "../components/GatedPage";
-import BookSessionModal from "../components/BookSessionModal";
-import GateModal from "../components/GateModal";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
+import GatedPage from "../components/common/GatedPage";
+import BookSessionModal from "../components/services/BookSessionModal";
+import GateModal from "../components/modals/GateModal";
 import { useGate } from "../hooks/useGate";
 import {
   Star,

@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
-import SkillsTagInput, { Skill } from "../components/SkillsTagInput";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
+import SkillsTagInput, { Skill } from "../components/forms/SkillsTagInput";
 import { useLanguage } from "../lib/LanguageContext";
 import { useSubscription } from "../lib/SubscriptionContext";
-import GuardedAction from "../components/GuardedAction";
+import GuardedAction from "../components/common/GuardedAction";
 import { useDebouncedSearch } from "../hooks/useDebounce";
 import {
   Search,

@@ -3,10 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { User, Briefcase } from "lucide-react";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
-import SEO from "../components/SEO";
-import LanguageText from "../components/LanguageText";
-import Card from "../components/Card";
-import Button from "../components/Button";
+import SEO from "../components/layout/SEO";
+import LanguageText from "../components/common/LanguageText";
+import CustomCard from "../components/forms/Card";
+import CustomButton from "../components/forms/Button";
 
 export default function ChooseRole() {
   const { currentLanguage, t } = useLanguage();
@@ -133,7 +133,7 @@ export default function ChooseRole() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Freelance Option */}
-          <Card
+          <CustomCard
             onClick={() => handleRoleSelection("provider")}
             className={`p-8 text-center group ${
               isLoading
@@ -161,10 +161,10 @@ export default function ChooseRole() {
                 />
               </p>
             </div>
-          </Card>
+          </CustomCard>
 
           {/* Client Option */}
-          <Card
+          <CustomCard
             onClick={() => handleRoleSelection("customer")}
             className={`p-8 text-center group ${
               isLoading
@@ -188,7 +188,7 @@ export default function ChooseRole() {
                 />
               </p>
             </div>
-          </Card>
+          </CustomCard>
         </div>
 
         {/* Loading indicator */}

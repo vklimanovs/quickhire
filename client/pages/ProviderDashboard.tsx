@@ -7,28 +7,33 @@ import {
   ProviderProfile,
 } from "../Types";
 
-import { DeleteAccountModal } from "../components/DeleteAccountModal";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
-import Card from "../components/Card";
+import { DeleteAccountModal } from "../components/modals/DeleteAccountModal";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
+import CustomCard from "../components/forms/Card";
+import PasswordChangeForm from "../components/profile/PasswordChangeForm";
+import PrivacySettings from "../components/profile/PrivacySettings";
+import DangerZone from "../components/profile/DangerZone";
+import BasicInformationSection from "../components/profile/BasicInformationSection";
+import ContactInformationSection from "../components/profile/ContactInformationSection";
 
-import ServiceConsultationCard from "../components/ServiceConsultationCard";
-import LanguageAutocomplete from "../components/LanguageAutocomplete";
-import SkillsAutocomplete from "../components/SkillsAutocomplete";
-import CategorySelector from "../components/CategorySelector";
-import PortfolioCard from "../components/PortfolioCard";
-import ServiceEditModal from "../components/ServiceEditModal";
-import ConsultationEditModal from "../components/ConsultationEditModal";
-import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-import SimpleAvailabilityToggle from "../components/SimpleAvailabilityToggle";
-import PhotoUpload from "../components/PhotoUpload";
+import ServiceConsultationCard from "../components/services/ServiceConsultationCard";
+import LanguageAutocomplete from "../components/forms/LanguageAutocomplete";
+import SkillsAutocomplete from "../components/forms/SkillsAutocomplete";
+import CategorySelector from "../components/forms/CategorySelector";
+import PortfolioCard from "../components/portfolio/PortfolioCard";
+import ServiceEditModal from "../components/services/ServiceEditModal";
+import ConsultationEditModal from "../components/services/ConsultationEditModal";
+import DeleteConfirmationModal from "../components/modals/DeleteConfirmationModal";
+import SimpleAvailabilityToggle from "../components/dashboard/SimpleAvailabilityToggle";
+import PhotoUpload from "../components/profile/PhotoUpload";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import { ProviderProvider, useProvider } from "../lib/ProviderContext";
 import { useVerificationRestrictions } from "../hooks/useVerificationRestrictions";
-import { EmailVerificationAlert } from "../components/EmailVerificationAlert";
+import { EmailVerificationAlert } from "../components/authentication/EmailVerificationAlert";
 import {
   User,
   Star,
@@ -49,13 +54,18 @@ import {
   Briefcase,
   Lock,
 } from "lucide-react";
-import { AuthApi } from "../lib/ApiClient";
+
 import { getLocalizedLanguageName } from "../data/languages";
 
 function ModernProviderDashboardContent() {
   const { currentLanguage, t } = useLanguage();
-  const { user, updateEmail, setCurrentProfilePhoto, refreshUserData } =
-    useAuth();
+  const {
+    user,
+    updateEmail,
+    setCurrentProfilePhoto,
+    refreshUserData,
+    resendVerificationEmail,
+  } = useAuth();
   const { provider, stats, updateProviderStatus, isLoading } = useProvider();
   const {
     canAddServices,
@@ -92,12 +102,6 @@ function ModernProviderDashboardContent() {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-  const [passwordError, setPasswordError] = useState("");
   const [showPhoneNumber, setShowPhoneNumber] = useState(true);
   const [showEmail, setShowEmail] = useState(true);
   const [showSocials, setShowSocials] = useState(true);
@@ -363,7 +367,7 @@ function ModernProviderDashboardContent() {
       toast({
         title:
           currentLanguage === "ru"
-            ? "Требуется подтвержде��ие"
+            ? "Требуется подтверждение"
             : currentLanguage === "en"
               ? "Verification Required"
               : "Vajalik kinnitamine",
@@ -409,7 +413,7 @@ function ModernProviderDashboardContent() {
     toast({
       title:
         currentLanguage === "ru"
-          ? "Услуга удал��на!"
+          ? "Услуга удалёна!"
           : currentLanguage === "en"
             ? "Service deleted!"
             : "Teenus kustutatud!",
@@ -474,7 +478,7 @@ function ModernProviderDashboardContent() {
     toast({
       title:
         currentLanguage === "ru"
-          ? "Консультация уд��лена!"
+          ? "Консультация удёлена!"
           : currentLanguage === "en"
             ? "Consultation deleted!"
             : "Konsultatsioon kustutatud!",
@@ -508,179 +512,6 @@ function ModernProviderDashboardContent() {
     });
   };
 
-  // Password strength checker
-  const getPasswordStrength = (password: string) => {
-    if (!password) return { strength: 0, requirements: [] };
-
-    const requirements = [
-      { met: password.length >= 8, text: "At least 8 characters" },
-      { met: /[A-Z]/.test(password), text: "One uppercase letter" },
-      { met: /[a-z]/.test(password), text: "One lowercase letter" },
-      { met: /\d/.test(password), text: "One digit" },
-      {
-        met: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-        text: "One special character",
-      },
-    ];
-
-    const metCount = requirements.filter((req) => req.met).length;
-    const strength = (metCount / requirements.length) * 100;
-
-    return { strength, requirements };
-  };
-
-  const passwordStrength = getPasswordStrength(passwordData.newPassword);
-
-  // Password change handler
-  const handlePasswordChange = async () => {
-    setPasswordError("");
-
-    // Validate required fields based on whether password is already set
-    const requiredFields = user?.isPasswordSet
-      ? [
-          passwordData.currentPassword,
-          passwordData.newPassword,
-          passwordData.confirmPassword,
-        ]
-      : [passwordData.newPassword, passwordData.confirmPassword];
-
-    if (requiredFields.some((field) => !field)) {
-      toast({
-        title:
-          currentLanguage === "ru"
-            ? "Заполните все поля"
-            : currentLanguage === "en"
-              ? "Fill all fields"
-              : "Täitke kõik väljad",
-        description:
-          currentLanguage === "ru"
-            ? "Все поля пароля обязательны для ��аполнения."
-            : currentLanguage === "en"
-              ? "All password fields are required."
-              : "Kõik parooli väljad on kohustuslikud.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Check password complexity requirements
-    const { requirements } = getPasswordStrength(passwordData.newPassword);
-    const unmetRequirements = requirements.filter(req => !req.met);
-    
-    if (unmetRequirements.length > 0) {
-      toast({
-        title:
-          currentLanguage === "ru"
-            ? "Пароль не соответствует требованиям"
-            : currentLanguage === "en"
-              ? "Password doesn't meet requirements"
-              : "Parool ei vasta nõuetele",
-        description:
-          currentLanguage === "ru"
-            ? "Пароль должен соответствовать всем требованиям безопасности."
-            : currentLanguage === "en"
-              ? "Password must meet all security requirements."
-              : "Parool peab vastama kõigile turvanõuetele.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title:
-          currentLanguage === "ru"
-            ? "Пароли не совпада��т"
-            : currentLanguage === "en"
-              ? "Passwords do not match"
-              : "Paroolid ei ühti",
-        description:
-          currentLanguage === "ru"
-            ? "Новый пароль и подтверждение должны совпадать."
-            : currentLanguage === "en"
-              ? "New password and confirmation must match."
-              : "Uus parool ja kinnitus peavad ühtima.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await AuthApi.changePassword(
-        user?.isPasswordSet ? passwordData.currentPassword : "",
-        passwordData.newPassword,
-      );
-
-      if (error) {
-        if (
-          error.toLowerCase().includes("incorrect password") ||
-          error.toLowerCase().includes("неверный пароль") ||
-          error.toLowerCase().includes("vale parool")
-        ) {
-          setPasswordError(
-            currentLanguage === "ru"
-              ? "Неверн��й текущий пароль. Пожалуйста, введите правильный пароль."
-              : currentLanguage === "en"
-                ? "Incorrect current password. Please enter the correct password."
-                : "Vale praegune parool. Palun sisestage õige parool.",
-          );
-          return;
-        }
-        throw new Error(error);
-      }
-
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setPasswordError("");
-
-      // If this was setting password for the first time, refresh user data
-      if (!user?.isPasswordSet) {
-        await refreshUserData();
-      }
-
-      toast({
-        title: user?.isPasswordSet
-          ? currentLanguage === "ru"
-            ? "Пароль обновлён"
-            : currentLanguage === "en"
-              ? "Password updated"
-              : "Parool uuendatud"
-          : currentLanguage === "ru"
-            ? "Пароль установлен"
-            : currentLanguage === "en"
-              ? "Password set"
-              : "Parool määratud",
-        description: user?.isPasswordSet
-          ? currentLanguage === "ru"
-            ? "Ваш пароль был успешно обновлён."
-            : currentLanguage === "en"
-              ? "Your password has been successfully updated."
-              : "Teie parool on edukalt uuendatud."
-          : currentLanguage === "ru"
-            ? "Ваш пароль был успешно установлен."
-            : currentLanguage === "en"
-              ? "Your password has been successfully set."
-              : "Teie parool on edukalt määratud.",
-        variant: "default",
-      });
-    } catch (err: any) {
-      console.error("Failed to change password:", err);
-      toast({
-        title:
-          currentLanguage === "ru"
-            ? "Ошибка обновления пароля"
-            : currentLanguage === "en"
-              ? "Password Update Failed"
-              : "Parooli värskendamine ebaõnnestus",
-        description: err.message || "An unknown error occurred.",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Language and Skills handlers
   const handleLanguagesChange = (languages: LanguageSkill[]) => {
     setEditableProvider({ ...editableProvider, languageSkills: languages });
@@ -697,18 +528,18 @@ function ModernProviderDashboardContent() {
       toast({
         title:
           currentLanguage === "ru"
-            ? "Нас��ройки приватности обновлены"
+            ? "Настройки приватности обновлены"
             : currentLanguage === "en"
               ? "Privacy settings updated"
               : "Privaatsuse seaded uuendatud",
         description: checked
           ? currentLanguage === "ru"
-            ? "Номер телефона те��ерь виден в пр��филе."
+            ? "Номер телефона теперь виден в профиле."
             : currentLanguage === "en"
               ? "Phone number is now visible in your profile."
               : "Telefoninumber on nüüd teie profiilis nähtav."
           : currentLanguage === "ru"
-            ? "Номер телефона ��крыт из профиля."
+            ? "Номер телефона скрыт из профиля."
             : currentLanguage === "en"
               ? "Phone number is now hidden from your profile."
               : "Telefoninumber on nüüd teie profiilist peidetud.",
@@ -723,7 +554,7 @@ function ModernProviderDashboardContent() {
       toast({
         title:
           currentLanguage === "ru"
-            ? "Настройки приватности обновлен��"
+            ? "Настройки приватности обновлены"
             : currentLanguage === "en"
               ? "Privacy settings updated"
               : "Privaatsuse seaded uuendatud",
@@ -734,7 +565,7 @@ function ModernProviderDashboardContent() {
               ? "Email address is now visible in your profile."
               : "E-posti aadress on nüüd teie profiilis nähtav."
           : currentLanguage === "ru"
-            ? "Email адрес скрыт и�� профиля."
+            ? "Email адрес скрыт из профиля."
             : currentLanguage === "en"
               ? "Email address is now hidden from your profile."
               : "E-posti aadress on nüüd teie profiilist peidetud.",
@@ -755,12 +586,12 @@ function ModernProviderDashboardContent() {
               : "Privaatsuse seaded uuendatud",
         description: checked
           ? currentLanguage === "ru"
-            ? "Социальные с��ти тепе��ь видны в профиле."
+            ? "Социальные сети теперь видны в профиле."
             : currentLanguage === "en"
               ? "Social links are now visible in your profile."
               : "Sotsiaalmeedia lingid on nüüd teie profiilis nähtavad."
           : currentLanguage === "ru"
-            ? "Социальные сети ��крыты из профиля."
+            ? "Социальные сети скрыты из профиля."
             : currentLanguage === "en"
               ? "Social links are now hidden from your profile."
               : "Sotsiaalmeedia lingid on nüüd teie profiilist peidetud.",
@@ -931,7 +762,7 @@ function ModernProviderDashboardContent() {
         )}
 
         {/* Provider Profile Header - New Organized Layout */}
-        <Card border shadow="sm" className="mb-3 sm:mb-6">
+        <CustomCard border shadow="sm" className="mb-3 sm:mb-6">
           <div className="p-3 sm:p-6">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900">
@@ -980,402 +811,157 @@ function ModernProviderDashboardContent() {
                 {isEditingProfile ? (
                   <div className="space-y-8">
                     {/* Basic Information Section */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                      <div className="flex items-center mb-6">
-                        <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                          <User className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {currentLanguage === "ru"
-                            ? "Основная информация"
-                            : currentLanguage === "en"
-                              ? "Basic Information"
-                              : "Põhiinfo"}
-                        </h3>
-                      </div>
-
-                      {/* Photo Upload */}
-                      <PhotoUpload
-                        currentPhoto={
-                          user?.profileImage ||
-                          editableProvider.photo ||
-                          provider.photo
-                        }
-                        onPhotoChange={(photoData) => {
-                          setEditableProvider({
-                            ...editableProvider,
-                            photo: photoData,
+                    <BasicInformationSection
+                      currentPhoto={
+                        user?.profileImage ||
+                        editableProvider.photo ||
+                        provider.photo
+                      }
+                      onPhotoChange={(photoData) => {
+                        setEditableProvider({
+                          ...editableProvider,
+                          photo: photoData,
+                        });
+                        setCurrentProfilePhoto(photoData);
+                      }}
+                      firstName={
+                        editableProvider.firstName ||
+                        editableProvider.name?.split(" ")[0] ||
+                        ""
+                      }
+                      lastName={
+                        editableProvider.lastName ||
+                        editableProvider.name?.split(" ").slice(1).join(" ") ||
+                        ""
+                      }
+                      company={editableProvider.company || ""}
+                      onFirstNameChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          firstName: value,
+                          name: `${value} ${editableProvider.lastName || editableProvider.name?.split(" ").slice(1).join(" ") || ""}`.trim(),
+                        })
+                      }
+                      onLastNameChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          lastName: value,
+                          name: `${editableProvider.firstName || editableProvider.name?.split(" ")[0] || ""} ${value}`.trim(),
+                        })
+                      }
+                      onCompanyChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          company: value,
+                        })
+                      }
+                      email={editableEmail}
+                      onEmailChange={setEditableEmail}
+                      isEmailVerified={user?.isEmailVerified}
+                      hasEmailChanged={hasEmailChanged}
+                      isUpdatingEmail={isUpdatingEmail}
+                      onUpdateEmail={handleUpdateEmail}
+                      onResendVerification={async () => {
+                        try {
+                          await resendVerificationEmail();
+                          toast({
+                            title:
+                              currentLanguage === "ru"
+                                ? "Подтверждение отправлено"
+                                : currentLanguage === "en"
+                                  ? "Verification sent"
+                                  : "Kinnitus saadetud",
+                            description:
+                              currentLanguage === "ru"
+                                ? "Проверьте ваш email для подтверждения"
+                                : currentLanguage === "en"
+                                  ? "Check your email for verification"
+                                  : "Kontrollige oma e-maili kinnitamiseks",
+                            variant: "default",
                           });
-                          setCurrentProfilePhoto(photoData);
-                        }}
-                        size="md"
-                        className="mb-6"
-                      />
-
-                      {/* Personal Details */}
-                      <div className="space-y-4 mb-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {currentLanguage === "ru"
-                                ? "Имя"
+                        } catch (error) {
+                          toast({
+                            title:
+                              currentLanguage === "ru"
+                                ? "Ошибка"
                                 : currentLanguage === "en"
-                                  ? "First Name"
-                                  : "Eesnimi"}
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                editableProvider.firstName ||
-                                editableProvider.name?.split(" ")[0] ||
-                                ""
-                              }
-                              onChange={(e) =>
-                                setEditableProvider({
-                                  ...editableProvider,
-                                  firstName: e.target.value,
-                                  name: `${e.target.value} ${editableProvider.lastName || editableProvider.name?.split(" ").slice(1).join(" ") || ""}`.trim(),
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              {currentLanguage === "ru"
-                                ? "Фамилия"
+                                  ? "Error"
+                                  : "Viga",
+                            description:
+                              currentLanguage === "ru"
+                                ? "Не удалось отправить подтверждение"
                                 : currentLanguage === "en"
-                                  ? "Last Name"
-                                  : "Perekonnanimi"}
-                            </label>
-                            <input
-                              type="text"
-                              value={
-                                editableProvider.lastName ||
-                                editableProvider.name
-                                  ?.split(" ")
-                                  .slice(1)
-                                  .join(" ") ||
-                                ""
-                              }
-                              onChange={(e) =>
-                                setEditableProvider({
-                                  ...editableProvider,
-                                  lastName: e.target.value,
-                                  name: `${editableProvider.firstName || editableProvider.name?.split(" ")[0] || ""} ${e.target.value}`.trim(),
-                                })
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {currentLanguage === "ru"
-                              ? "Компания (необязательно)"
-                              : currentLanguage === "en"
-                                ? "Company (optional)"
-                                : "Ettevõte (valikuline)"}
-                          </label>
-                          <input
-                            type="text"
-                            value={editableProvider.company || ""}
-                            onChange={(e) =>
-                              setEditableProvider({
-                                ...editableProvider,
-                                company: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Professional Title */}
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {currentLanguage === "ru"
-                            ? "Профессия"
-                            : currentLanguage === "en"
-                              ? "Professional Title"
-                              : "Kutsealane tiitel"}
-                        </label>
-                        <input
-                          type="text"
-                          value={editableProvider.headline || ""}
-                          onChange={(e) =>
-                            setEditableProvider({
-                              ...editableProvider,
-                              headline: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                          placeholder={
-                            currentLanguage === "ru"
-                              ? "Например: Senior Frontend Developer"
-                              : currentLanguage === "en"
-                                ? "e.g., Senior Frontend Developer"
-                                : "nt Senior Frontend Developer"
-                          }
-                        />
-                      </div>
-
-                      {/* Email Section */}
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {currentLanguage === "ru"
-                            ? "E-mail"
-                            : currentLanguage === "en"
-                              ? "Email"
-                              : "E-mail"}
-                        </label>
-                        {user?.isEmailVerified ? (
-                          <div className="relative">
-                            <input
-                              type="email"
-                              value={user.email}
-                              readOnly
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
-                            />
-                            <div className="absolute right-3 top-2">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                {currentLanguage === "ru"
-                                  ? "Подтверждён"
-                                  : currentLanguage === "en"
-                                    ? "Verified"
-                                    : "Kinnitatud"}
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <input
-                              type="email"
-                              value={editableEmail}
-                              onChange={(e) => setEditableEmail(e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                            />
-                            <div className="flex items-center justify-between mt-1">
-                              <p className="text-xs text-gray-500">
-                                {currentLanguage === "ru"
-                                  ? "Изменения email требуют верификации"
-                                  : currentLanguage === "en"
-                                    ? "Email changes require verification"
-                                    : "E-maili muudatused vajavad kinnitamist"}
-                              </p>
-                              <span className="text-xs text-orange-600 font-medium">
-                                {currentLanguage === "ru"
-                                  ? "Не подтверждён"
-                                  : currentLanguage === "en"
-                                    ? "Not verified"
-                                    : "Kinnitamata"}
-                              </span>
-                            </div>
-                            {hasEmailChanged && (
-                              <div className="mt-2">
-                                <button
-                                  onClick={handleUpdateEmail}
-                                  disabled={isUpdatingEmail}
-                                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                                >
-                                  {isUpdatingEmail
-                                    ? currentLanguage === "ru"
-                                      ? "Обновление..."
-                                      : currentLanguage === "en"
-                                        ? "Updating..."
-                                        : "Uuendamine..."
-                                    : currentLanguage === "ru"
-                                      ? "Обновить Email"
-                                      : currentLanguage === "en"
-                                        ? "Update Email"
-                                        : "Uuenda E-mail"}
-                                </button>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      {/* Location */}
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {currentLanguage === "ru"
-                            ? "Местоположение"
-                            : currentLanguage === "en"
-                              ? "Location"
-                              : "Asukoht"}
-                        </label>
-                        <input
-                          type="text"
-                          value={editableProvider.location || ""}
-                          onChange={(e) =>
-                            setEditableProvider({
-                              ...editableProvider,
-                              location: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                          placeholder={
-                            currentLanguage === "ru"
-                              ? "Город, Страна"
-                              : currentLanguage === "en"
-                                ? "City, Country"
-                                : "Linn, riik"
-                          }
-                        />
-                      </div>
-
-                      {/* About Me */}
-                      <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {currentLanguage === "ru"
-                            ? "О себ��"
-                            : currentLanguage === "en"
-                              ? "About Me"
-                              : "Minust"}
-                        </label>
-                        <textarea
-                          value={editableProvider.bio || ""}
-                          onChange={(e) =>
-                            setEditableProvider({
-                              ...editableProvider,
-                              bio: e.target.value,
-                            })
-                          }
-                          rows={4}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
-                          placeholder={
-                            currentLanguage === "ru"
-                              ? "Р��сскажите о своем опыте и услугах..."
-                              : currentLanguage === "en"
-                                ? "Tell about your experience and services..."
-                                : "Rääkige oma kogemustest ja teenustest..."
-                          }
-                        />
-                      </div>
-
-                      {/* Languages */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {currentLanguage === "ru"
-                            ? "Владею языками"
-                            : currentLanguage === "en"
-                              ? "Languages Spoken"
-                              : "Valdab keeli"}
-                        </label>
-                        <LanguageAutocomplete
-                          value={editableProvider.languageSkills || []}
-                          onChange={handleLanguagesChange}
-                          placeholder={
-                            currentLanguage === "ru"
-                              ? "Поиск и добавление языков..."
-                              : currentLanguage === "en"
-                                ? "Search and add languages..."
-                                : "Otsi ja lisa keeli..."
-                          }
-                        />
-                      </div>
-                    </div>
+                                  ? "Failed to send verification"
+                                  : "Kinnituse saatmine ebaõnnestus",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      bio={editableProvider.bio || ""}
+                      languages={editableProvider.languageSkills || []}
+                      onBioChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          bio: value,
+                        })
+                      }
+                      onLanguagesChange={handleLanguagesChange}
+                      headline={editableProvider.headline || ""}
+                      onHeadlineChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          headline: value,
+                        })
+                      }
+                      location={editableProvider.location || ""}
+                      onLocationChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          location: value,
+                        })
+                      }
+                      variant="provider"
+                    />
 
                     {/* Contact Information Section */}
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-                      <div className="flex items-center mb-6">
-                        <div className="bg-green-100 p-2 rounded-lg mr-3">
-                          <Phone className="h-5 w-5 text-green-600" />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {currentLanguage === "ru"
-                            ? "Кон��актная информация"
-                            : currentLanguage === "en"
-                              ? "Contact Information"
-                              : "Kontaktandmed"}
-                        </h3>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Phone className="h-4 w-4 inline mr-2" />
-                            {currentLanguage === "ru"
-                              ? "Телефон"
-                              : currentLanguage === "en"
-                                ? "Phone Number"
-                                : "Telefoninumber"}
-                          </label>
-                          <input
-                            type="tel"
-                            value={editableProvider.phone || ""}
-                            onChange={(e) =>
-                              setEditableProvider({
-                                ...editableProvider,
-                                phone: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                            placeholder="+372 XXXX XXXX"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Globe className="h-4 w-4 inline mr-2" />
-                            {currentLanguage === "ru"
-                              ? "Ве��-сайт"
-                              : currentLanguage === "en"
-                                ? "Website"
-                                : "Veebileht"}
-                          </label>
-                          <input
-                            type="url"
-                            value={editableProvider.website || ""}
-                            onChange={(e) =>
-                              setEditableProvider({
-                                ...editableProvider,
-                                website: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                            placeholder="https://yourwebsite.com"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Linkedin className="h-4 w-4 inline mr-2" />
-                            LinkedIn
-                          </label>
-                          <input
-                            type="url"
-                            value={editableProvider.linkedin || ""}
-                            onChange={(e) =>
-                              setEditableProvider({
-                                ...editableProvider,
-                                linkedin: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                            placeholder="https://linkedin.com/in/yourprofile"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            <Github className="h-4 w-4 inline mr-2" />
-                            GitHub
-                          </label>
-                          <input
-                            type="url"
-                            value={editableProvider.github || ""}
-                            onChange={(e) =>
-                              setEditableProvider({
-                                ...editableProvider,
-                                github: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
-                            placeholder="https://github.com/yourusername"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    <ContactInformationSection
+                      phone={editableProvider.phone || ""}
+                      location={editableProvider.location || ""}
+                      website={editableProvider.website || ""}
+                      linkedin={editableProvider.linkedin || ""}
+                      github={editableProvider.github || ""}
+                      onPhoneChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          phone: value,
+                        })
+                      }
+                      onLocationChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          location: value,
+                        })
+                      }
+                      onWebsiteChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          website: value,
+                        })
+                      }
+                      onLinkedinChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          linkedin: value,
+                        })
+                      }
+                      onGithubChange={(value) =>
+                        setEditableProvider({
+                          ...editableProvider,
+                          github: value,
+                        })
+                      }
+                      variant="provider"
+                    />
 
                     {/* Categories & Skills Section - moved after Contact */}
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 sm:p-6 border border-purple-100">
@@ -1704,10 +1290,10 @@ function ModernProviderDashboardContent() {
               </div>
             </div>
           </div>
-        </Card>
+        </CustomCard>
 
         {/* Tab Navigation */}
-        <Card border shadow="sm" className="mb-3 sm:mb-6 lg:mb-8">
+        <CustomCard border shadow="sm" className="mb-3 sm:mb-6 lg:mb-8">
           <div className="border-b border-gray-200">
             <nav
               className="flex overflow-x-auto scrollbar-hide space-x-2 sm:space-x-4 lg:space-x-8 px-3 sm:px-6 relative"
@@ -2071,304 +1657,28 @@ function ModernProviderDashboardContent() {
                   </h2>
 
                   {/* Change Password */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      {user?.isPasswordSet
-                        ? currentLanguage === "ru"
-                          ? "Изменить пароль"
-                          : currentLanguage === "en"
-                            ? "Change Password"
-                            : "Muuda parooli"
-                        : currentLanguage === "ru"
-                          ? "Установить пароль"
-                          : currentLanguage === "en"
-                            ? "Set Password"
-                            : "Määra parool"}
-                    </h3>
-
-                    <div className="max-w-md space-y-4">
-                      {user?.isPasswordSet && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {currentLanguage === "ru"
-                              ? "Текущий пароль"
-                              : currentLanguage === "en"
-                                ? "Current Password"
-                                : "Praegune parool"}
-                          </label>
-                          <input
-                            type="password"
-                            value={passwordData.currentPassword}
-                            onChange={(e) =>
-                              setPasswordData({
-                                ...passwordData,
-                                currentPassword: e.target.value,
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="••••••••"
-                          />
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {user?.isPasswordSet
-                            ? currentLanguage === "ru"
-                              ? "Новый пароль"
-                              : currentLanguage === "en"
-                                ? "New Password"
-                                : "Uus parool"
-                            : currentLanguage === "ru"
-                              ? "Пароль"
-                              : currentLanguage === "en"
-                                ? "Password"
-                                : "Parool"}
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordData.newPassword}
-                          onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              newPassword: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="••••••••"
-                        />
-                        
-                        {/* Password Strength Indicator */}
-                        {passwordData.newPassword && (
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-gray-700">
-                                {currentLanguage === "ru"
-                                  ? "Сила пароля"
-                                  : currentLanguage === "en"
-                                    ? "Password Strength"
-                                    : "Parooli tugevus"}
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {passwordStrength.strength}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  passwordStrength.strength < 40
-                                    ? "bg-red-500"
-                                    : passwordStrength.strength < 80
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
-                                }`}
-                                style={{ width: `${passwordStrength.strength}%` }}
-                              ></div>
-                            </div>
-                            
-                            {/* Password Requirements */}
-                            <div className="mt-3 space-y-1">
-                              {passwordStrength.requirements.map((req, index) => (
-                                <div
-                                  key={index}
-                                  className={`flex items-center text-xs ${
-                                    req.met ? "text-green-600" : "text-gray-500"
-                                  }`}
-                                >
-                                  {req.met ? (
-                                    <CheckCircle className="h-3 w-3 mr-2 text-green-600" />
-                                  ) : (
-                                    <div className="h-3 w-3 mr-2 rounded-full border border-gray-300"></div>
-                                  )}
-                                  {req.text}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {user?.isPasswordSet
-                            ? currentLanguage === "ru"
-                              ? "Подтвердить новый пароль"
-                              : currentLanguage === "en"
-                                ? "Confirm New Password"
-                                : "Kinnita uut parooli"
-                            : currentLanguage === "ru"
-                              ? "Подтвердить пароль"
-                              : currentLanguage === "en"
-                                ? "Confirm Password"
-                                : "Kinnita parooli"}
-                        </label>
-                        <input
-                          type="password"
-                          value={passwordData.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordData({
-                              ...passwordData,
-                              confirmPassword: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="•••••���••"
-                        />
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={handlePasswordChange}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                        >
-                          {user?.isPasswordSet
-                            ? currentLanguage === "ru"
-                              ? "Обновить па��оль"
-                              : currentLanguage === "en"
-                                ? "Update Password"
-                                : "Uuenda parooli"
-                            : currentLanguage === "ru"
-                              ? "Установить пароль"
-                              : currentLanguage === "en"
-                                ? "Set Password"
-                                : "Määra parool"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <PasswordChangeForm
+                    isPasswordSet={user?.isPasswordSet || false}
+                    onPasswordChanged={() => refreshUserData()}
+                  />
 
                   {/* Privacy Settings */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                      {currentLanguage === "ru"
-                        ? "Настройки ��риватности"
-                        : currentLanguage === "en"
-                          ? "Privacy Settings"
-                          : "Privaatsuse seaded"}
-                    </h3>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {currentLanguage === "ru"
-                              ? "Показать номер телефона"
-                              : currentLanguage === "en"
-                                ? "Show Phone Number"
-                                : "Näita telefoninumbrit"}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {currentLanguage === "ru"
-                              ? "Разрешить клиентам видеть ваш номер телефона в профиле"
-                              : currentLanguage === "en"
-                                ? "Allow clients to see your phone number in your profile"
-                                : "Luba klientidel näha teie telefoninumbrit teie profiilis"}
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={showPhoneNumber}
-                            onChange={(e) =>
-                              handlePhoneNumberVisibilityChange(
-                                e.target.checked,
-                              )
-                            }
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {currentLanguage === "ru"
-                              ? "Показать email адрес"
-                              : currentLanguage === "en"
-                                ? "Show Email Address"
-                                : "Näita e-posti aadressi"}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {currentLanguage === "ru"
-                              ? "Разрешить клиентам видеть ваш email ����дрес в про��иле"
-                              : currentLanguage === "en"
-                                ? "Allow clients to see your email address in your profile"
-                                : "Luba klientidel näha teie e-posti aadressi teie profiilis"}
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={showEmail}
-                            onChange={(e) =>
-                              handleEmailVisibilityChange(e.target.checked)
-                            }
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {currentLanguage === "ru"
-                              ? "Показать социальные сети"
-                              : currentLanguage === "en"
-                                ? "Show Social Links"
-                                : "Näita sotsiaalmeedia linke"}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {currentLanguage === "ru"
-                              ? "Показать все социальные сети (Website, LinkedIn, GitHub и т.д.) в профиле"
-                              : currentLanguage === "en"
-                                ? "Show all social links (Website, LinkedIn, GitHub, etc.) in your profile"
-                                : "Näita kõiki sotsiaalmeedia linke (Veebileht, LinkedIn, GitHub jne) teie profiilis"}
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="sr-only peer"
-                            checked={showSocials}
-                            onChange={(e) =>
-                              handleSocialsVisibilityChange(e.target.checked)
-                            }
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  <PrivacySettings
+                    showPhoneNumber={showPhoneNumber}
+                    showEmail={showEmail}
+                    showSocials={showSocials}
+                    onPhoneNumberVisibilityChange={
+                      handlePhoneNumberVisibilityChange
+                    }
+                    onEmailVisibilityChange={handleEmailVisibilityChange}
+                    onSocialsVisibilityChange={handleSocialsVisibilityChange}
+                    className="mb-8"
+                  />
 
                   {/* Danger Zone */}
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-red-900 mb-2">
-                      {currentLanguage === "ru"
-                        ? "Опасная зона"
-                        : currentLanguage === "en"
-                          ? "Danger Zone"
-                          : "Ohtlik tsoon"}
-                    </h3>
-                    <p className="text-sm text-red-700 mb-4">
-                      {currentLanguage === "ru"
-                        ? "Удаление аккаунта необратимо. Все ваши данные будут ��отеряны."
-                        : currentLanguage === "en"
-                          ? "Deleting your account is irreversible. All your data will be lost."
-                          : "Konto kustutamine on pöördumatu. Kõik teie andmed lähevad kaotsi."}
-                    </p>
-                    <button
-                      onClick={() => setIsDeleteAccountOpen(true)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
-                    >
-                      {currentLanguage === "ru"
-                        ? "Удалить аккаунт"
-                        : currentLanguage === "en"
-                          ? "Delete Account"
-                          : "Kustuta konto"}
-                    </button>
-                  </div>
+                  <DangerZone
+                    onDeleteAccount={() => setIsDeleteAccountOpen(true)}
+                  />
                 </div>
               </div>
             )}
@@ -2389,7 +1699,7 @@ function ModernProviderDashboardContent() {
               </div>
             )}
           </div>
-        </Card>
+        </CustomCard>
       </main>
 
       <Footer />

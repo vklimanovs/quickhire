@@ -1,9 +1,9 @@
 import React from "react";
 import { useLanguage } from "../lib/LanguageContext";
 import { useNotifications } from "../lib/NotificationContext";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { Bell, Mail, Smartphone, Settings } from "lucide-react";
 
 export default function NotificationSettings() {

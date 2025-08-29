@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
-import GoogleSignIn from "../components/GoogleSingIn";
-import GoogleRoleSelectionModal from "../components/GoogleRoleSelectionModal";
-import LanguageText from "../components/LanguageText";
-import FormField from "../components/FormField";
-import Button from "../components/Button";
-import Modal from "../components/Modal";
+import GoogleSignIn from "../components/authentication/GoogleSingIn";
+import GoogleRoleSelectionModal from "../components/authentication/GoogleRoleSelectionModal";
+import LanguageText from "../components/common/LanguageText";
+import FormField from "../components/forms/FormField";
+import CustomButton from "../components/forms/Button";
+import Modal from "../components/modals/Modal";
 
 export default function Login() {
   const { currentLanguage, t } = useLanguage();
@@ -263,7 +263,7 @@ export default function Login() {
               </div>
 
               {/* Submit Button */}
-              <Button
+              <CustomButton
                 type="submit"
                 disabled={isLoading}
                 loading={isLoading}

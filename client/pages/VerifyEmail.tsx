@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { Mail, RefreshCw, CheckCircle } from "lucide-react";
-import LanguageText from "../components/LanguageText";
-import Button from "../components/Button";
-import Card from "../components/Card";
+import LanguageText from "../components/common/LanguageText";
+import CustomButton from "../components/forms/Button";
+import CustomCard from "../components/forms/Card";
 
 export default function VerifyEmail() {
   const { currentLanguage } = useLanguage();
@@ -124,7 +124,7 @@ export default function VerifyEmail() {
           <div className="bg-white py-8 px-4 shadow rounded-xl border border-gray-200 sm:px-10">
             {/* Mock verification button (simulates clicking email link) */}
             <div className="mb-6">
-              <Button
+              <CustomButton
                 onClick={handleVerifyEmail}
                 disabled={isLoading}
                 loading={isLoading}

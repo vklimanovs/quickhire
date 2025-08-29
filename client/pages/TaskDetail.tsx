@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
-import RoleSwitchModal from "../components/RoleSwitchModal";
-import ProposalModal from "../components/ProposalModal";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
+import RoleSwitchModal from "../components/dashboard/RoleSwitchModal";
+import ProposalModal from "../components/portfolio/ProposalModal";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import { useVerificationRestrictions } from "../hooks/useVerificationRestrictions";
-import { EmailVerificationAlert } from "../components/EmailVerificationAlert";
+import { EmailVerificationAlert } from "../components/authentication/EmailVerificationAlert";
 // TODO: Replace with actual API imports
 import { Task, Proposal } from "../Types";
 import {

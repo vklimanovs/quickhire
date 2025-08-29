@@ -1,11 +1,11 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
-import GatedPage from "../components/GatedPage";
-import StandardTagInput from "../components/StandardTagInput";
-import Card from "../components/Card";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
+import GatedPage from "../components/common/GatedPage";
+import StandardTagInput from "../components/forms/StandardTagInput";
+import CustomCard from "../components/forms/Card";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import { useSubscription } from "../lib/SubscriptionContext";
@@ -14,7 +14,7 @@ import {
   SIMPLE_SKILL_SUGGESTIONS,
   SIMPLE_LANGUAGE_SUGGESTIONS,
 } from "../data/suggestions";
-import GateModal from "../components/GateModal";
+import GateModal from "../components/modals/GateModal";
 import { useGate } from "../hooks/useGate";
 import {
   Star,
@@ -349,7 +349,7 @@ export default function ProviderProfile() {
         {/* Blurred skeleton background */}
         <div className="filter blur-sm pointer-events-none">
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Card padding="lg" shadow="sm" className="mb-8">
+            <CustomCard padding="lg" shadow="sm" className="mb-8">
               <div className="flex items-start space-x-6">
                 <div className="w-24 h-24 bg-gray-200 rounded-full"></div>
                 <div className="flex-1">
@@ -359,26 +359,26 @@ export default function ProviderProfile() {
                   <div className="h-4 bg-gray-200 rounded w-48"></div>
                 </div>
               </div>
-            </Card>
+            </CustomCard>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
-                <Card padding="md" shadow="sm" className="mb-6">
+                <CustomCard padding="md" shadow="sm" className="mb-6">
                   <div className="h-6 bg-gray-200 rounded mb-4 w-32"></div>
                   <div className="space-y-2">
                     <div className="h-4 bg-gray-200 rounded w-full"></div>
                     <div className="h-4 bg-gray-200 rounded w-5/6"></div>
                     <div className="h-4 bg-gray-200 rounded w-4/6"></div>
                   </div>
-                </Card>
+                </CustomCard>
               </div>
               <div>
-                <Card padding="md" shadow="sm">
+                <CustomCard padding="md" shadow="sm">
                   <div className="h-6 bg-gray-200 rounded mb-4 w-24"></div>
                   <div className="space-y-3">
                     <div className="h-10 bg-gray-200 rounded w-full"></div>
                     <div className="h-10 bg-gray-200 rounded w-full"></div>
                   </div>
-                </Card>
+                </CustomCard>
               </div>
             </div>
           </main>
@@ -406,7 +406,7 @@ export default function ProviderProfile() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Provider Header */}
-        <Card border shadow="sm" padding="lg" className="mb-8">
+        <CustomCard border shadow="sm" padding="lg" className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-start gap-8">
             {/* Left Side - Photo and Basic Info */}
             <div className="flex-shrink-0">
@@ -627,7 +627,7 @@ export default function ProviderProfile() {
               )}
             </div>
           </div>
-        </Card>
+        </CustomCard>
 
         {/* Ready to Start? Section - Removed for subscribed customers */}
         {false && !isOwnProfile && (
@@ -771,7 +771,7 @@ export default function ProviderProfile() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Services Section */}
-            <Card border shadow="sm" padding="md">
+            <CustomCard border shadow="sm" padding="md">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
                   {t.providerProfile.services}
@@ -974,12 +974,12 @@ export default function ProviderProfile() {
                   </div>
                 ))}
               </div>
-            </Card>
+            </CustomCard>
 
             {/* Consultations Section */}
             {(provider.consultations.length > 0 ||
               (isEditMode && isOwnProfile)) && (
-              <Card border shadow="sm" padding="md">
+              <CustomCard border shadow="sm" padding="md">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
                     {t.providerProfile.consultationsAvailable}
@@ -1185,11 +1185,11 @@ export default function ProviderProfile() {
                     </div>
                   ))}
                 </div>
-              </Card>
+              </CustomCard>
             )}
 
             {/* Portfolio Section */}
-            <Card border shadow="sm" padding="md">
+            <CustomCard border shadow="sm" padding="md">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
                   {t.providerProfile.portfolio}
@@ -1334,7 +1334,7 @@ export default function ProviderProfile() {
                   </div>
                 ))}
               </div>
-            </Card>
+            </CustomCard>
           </div>
 
           {/* Sidebar */}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
 import {
@@ -16,13 +16,13 @@ import {
   Briefcase,
   Building,
 } from "lucide-react";
-import GoogleSignIn from "../components/GoogleSingIn";
-import GoogleRoleSelectionModal from "../components/GoogleRoleSelectionModal";
-import LanguageText from "../components/LanguageText";
-import FormField from "../components/FormField";
-import Button from "../components/Button";
-import Modal from "../components/Modal";
-import Card from "../components/Card";
+import GoogleSignIn from "../components/authentication/GoogleSingIn";
+import GoogleRoleSelectionModal from "../components/authentication/GoogleRoleSelectionModal";
+import LanguageText from "../components/common/LanguageText";
+import FormField from "../components/forms/FormField";
+import CustomButton from "../components/forms/Button";
+import Modal from "../components/modals/Modal";
+import CustomCard from "../components/forms/Card";
 
 export default function SignUp() {
   const { currentLanguage, t } = useLanguage();
@@ -615,7 +615,7 @@ export default function SignUp() {
       {/* Account Type Selector Modal */}
       {showAccountTypeSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card padding="md" className="max-w-md w-full mx-4">
+          <CustomCard padding="md" className="max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {currentLanguage === "ru"
                 ? "Выберите тип аккаунта"
@@ -683,7 +683,7 @@ export default function SignUp() {
                   ? "Cancel"
                   : "Tühista"}
             </button>
-          </Card>
+          </CustomCard>
         </div>
       )}
 

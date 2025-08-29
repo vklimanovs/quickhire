@@ -1,8 +1,8 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { ArrowLeft, Home } from "lucide-react";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
 import { useLanguage } from "../lib/LanguageContext";
 
 const NotFound = () => {

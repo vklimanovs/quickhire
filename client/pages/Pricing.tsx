@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useSubscription } from "../lib/SubscriptionContext";
 import { useAuth } from "../lib/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import { Check, Users, Briefcase, Crown } from "lucide-react";
-import LanguageText from "../components/LanguageText";
-import Button from "../components/Button";
-import Card from "../components/Card";
+import LanguageText from "../components/common/LanguageText";
+import CustomButton from "../components/forms/Button";
+import CustomCard from "../components/forms/Card";
 
 type BillingPeriod = "monthly" | "annual";
 type SelectedPlan = "client" | null;
@@ -254,7 +254,7 @@ export default function Pricing() {
         {/* Pricing Cards */}
         <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto mb-16">
           {/* Freelance Plan - Free */}
-          <Card
+          <CustomCard
             border
             shadow="sm"
             padding="lg"
@@ -350,10 +350,10 @@ export default function Pricing() {
                   ? "Always Free"
                   : "Alati tasuta"}
             </button>
-          </Card>
+          </CustomCard>
 
           {/* Client Plan */}
-          <Card
+          <CustomCard
             border
             shadow="lg"
             padding="lg"
@@ -477,7 +477,7 @@ export default function Pricing() {
                       ? "Start Now"
                       : "Alusta kohe"}
             </button>
-          </Card>
+          </CustomCard>
         </div>
 
         {/* CTA Section */}
@@ -508,7 +508,7 @@ export default function Pricing() {
             </h2>
           </div>
 
-          <Card border shadow="sm" padding="md" className="space-y-6">
+          <CustomCard border shadow="sm" padding="md" className="space-y-6">
             <div className="space-y-3">
               <h3 className="font-semibold text-gray-900">
                 {currentLanguage === "ru"
@@ -576,7 +576,7 @@ export default function Pricing() {
                     : "Jah, vahetage kuu- ja aastaplaani vahel igal ajal."}
               </p>
             </div>
-          </Card>
+          </CustomCard>
         </div>
       </main>
 

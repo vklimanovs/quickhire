@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
-import Footer from "../components/Footer";
-import SEO from "../components/SEO";
+import Navigation from "../components/layout/Navigation";
+import Footer from "../components/layout/Footer";
+import SEO from "../components/layout/SEO";
 import { useLanguage } from "../lib/LanguageContext";
 import { useAuth } from "../lib/AuthContext";
-import GateModal from "../components/GateModal";
+import GateModal from "../components/modals/GateModal";
 import { useGate } from "../hooks/useGate";
 import { useToast } from "../components/ui/use-toast";
 import {
